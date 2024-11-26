@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Get DOM elements
     const messageInput = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
@@ -10,11 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const usernameDisplay = document.getElementById('username');
     const emojiContainer = document.getElementById('emoji-container');
 
-    const username = 'User';  // You can dynamically set the username if needed
+    const username = 'User'; // You can dynamically set the username if needed
     usernameDisplay.textContent = username; // Display username in header
 
-    // Emojis Array
-    const emojis = ['😊', '😂', '😍', '😎', '🥺', '😢', '👍', '🙏'];
+    // Store emojis from GitHub API
+    let emojiMap = {};
 
     // Send message function
     function sendMessage() {
@@ -40,23 +40,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message');
         messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
-        
+
         // Optional: Add avatar for user/bot
         const avatar = document.createElement('img');
         avatar.classList.add('avatar');
-        avatar.src = sender === 'user' ? 'https://randomuser.me/api/portraits/men/1.jpg' : 'https://randomuser.me/api/portraits/men/2.jpg';
+        avatar.src = sender === 'user'
+            ? 'https://randomuser.me/api/portraits/men/1.jpg'
+            : 'https://randomuser.me/api/portraits/men/2.jpg';
         messageElement.appendChild(avatar);
 
-        // Add message text
+        // Replace emoji codes in the message with their image URLs
         const messageText = document.createElement('p');
-        messageText.textContent = message;
+        messageText.innerHTML = replaceEmojiWithImages(message); // Replace emojis
         messageElement.appendChild(messageText);
 
         // Add timestamp
         const timestamp = document.createElement('span');
         timestamp.classList.add('message-time');
         const date = new Date();
-        timestamp.textContent = `${date.getHours()}:${date.getMinutes()}`;
+        timestamp.textContent = `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
         messageElement.appendChild(timestamp);
 
         // Append message to chat window
@@ -69,7 +71,15 @@ document.addEventListener('DOMContentLoaded', function() {
         saveChatHistory();
     }
 
-    // Generate bot response based on user input (you can enhance this function)
+    // Replace emoji text with corresponding image URLs
+    function replaceEmojiWithImages(text) {
+        return text.replace(/:\w+:/g, match => {
+            const emojiUrl = emojiMap[match.slice(1, -1)];
+            return emojiUrl ? `<img src="${emojiUrl}" alt="${match}" class="emoji-inline" />` : match;
+        });
+    }
+
+    // Generate bot response based on user input
     function generateBotResponse(message) {
         if (message.toLowerCase().includes('hello')) {
             return 'Hi there! How can I assist you today? 😊';
@@ -82,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Event listener for "Enter" key press to send message
-    messageInput.addEventListener('keydown', function(event) {
+    messageInput.addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
             event.preventDefault(); // Prevent newline in input
             sendMessage();
@@ -93,36 +103,51 @@ document.addEventListener('DOMContentLoaded', function() {
     sendBtn.addEventListener('click', sendMessage);
 
     // Dark Mode toggle functionality
-    nightModeToggle.addEventListener('click', function() {
+    nightModeToggle.addEventListener('click', function () {
         document.body.classList.toggle('dark-mode');
     });
 
     // Floating Action Button (FAB) functionality
-    fab.addEventListener('click', function() {
-        messageInput.focus(); // Focus the input field to allow quick message typing
+    fab.addEventListener('click', function () {
+        messageInput.focus(); // Focus the input field for quick message typing
     });
 
     // Emoji picker toggle
-    emojiButton.addEventListener('click', function() {
+    emojiButton.addEventListener('click', function () {
         emojiContainer.style.display = emojiContainer.style.display === 'none' ? 'block' : 'none';
     });
 
     // Add emoji to input
-    emojiContainer.addEventListener('click', function(event) {
-        if (event.target.classList.contains('emoji')) {
-            messageInput.value += event.target.textContent;
-            emojiContainer.style.display = 'none';
+    emojiContainer.addEventListener('click', function (event) {
+        if (event.target.tagName === 'IMG') { // Ensure we are clicking on an image
+            const emojiAlt = event.target.alt; // Use the alt text as the emoji
+            messageInput.value += emojiAlt; // Append emoji to input field
+            emojiContainer.style.display = 'none'; // Hide emoji container after selection
         }
     });
 
-    // Initialize emoji list
-    function initializeEmojiContainer() {
-        emojis.forEach(emoji => {
-            const emojiElement = document.createElement('span');
-            emojiElement.classList.add('emoji');
-            emojiElement.textContent = emoji;
-            emojiContainer.appendChild(emojiElement);
-        });
+    // Fetch emojis from GitHub API and populate the emoji container
+    async function fetchEmojis() {
+        try {
+            const response = await fetch('https://api.github.com/emojis');
+            const emojis = await response.json();
+
+            // Store emojis in the emojiMap
+            emojiMap = emojis;
+
+            // Populate the emoji container
+            Object.entries(emojis).forEach(([name, emojiUrl]) => {
+                const emojiElement = document.createElement('img');
+                emojiElement.src = emojiUrl;
+                emojiElement.alt = `:${name}:`; // Use GitHub emoji name as the alt text
+                emojiElement.classList.add('emoji');
+                emojiElement.style.width = '32px'; // Set emoji size
+                emojiElement.style.cursor = 'pointer'; // Cursor pointer
+                emojiContainer.appendChild(emojiElement);
+            });
+        } catch (error) {
+            console.error('Error fetching emojis:', error);
+        }
     }
 
     // Save chat history in localStorage
@@ -142,6 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load chat history when page loads
     loadChatHistory();
 
-    // Initialize emoji container
-    initializeEmojiContainer();
+    // Fetch and initialize emojis
+    fetchEmojis();
 });
