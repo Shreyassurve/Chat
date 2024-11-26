@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="messenger.css">
+</head>
+<body>
+    <div class="messenger">
+        <!-- Header -->
+        <header class="messenger-header">
+            <h1>Messenger</h1>
+            <p id="username-display">You are chatting as: <span id="username"></span></p>
+            <button id="night-mode-toggle" class="night-mode-toggle">🌙</button>
+        </header>
+
+        <!-- Chat Window -->
+        <div id="chat-window" class="chat-window"></div>
+
+        <!-- Typing Indicator -->
+        <div id="typing-indicator" class="typing-indicator">Bot is typing...</div>
+
+        <!-- Message Input -->
+        <footer class="messenger-footer">
+            <input type="text" id="message-input" class="message-input" placeholder="Type a message...">
+            <button id="send-btn" class="send-btn">Send</button>
+        </footer>
+        <button id="emoji-btn" class="send-btn">😊</button>
+        <div id="emoji-container"></div>
+        <!-- Floating Action Button -->
+        <button id="fab" class="fab" onclick="sendQuickMessage()">💬</button>
+    
+        
+        
+
+    </div>
+    <script src="messenger.js"></script>
+</body>
+</html>
