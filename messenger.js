@@ -5,26 +5,45 @@ document.addEventListener('DOMContentLoaded', function () {
     const chatWindow = document.getElementById('chat-window');
     const typingIndicator = document.getElementById('typing-indicator');
     const nightModeToggle = document.getElementById('night-mode-toggle');
-    const fab = document.getElementById('fab');
     const emojiButton = document.getElementById('emoji-btn');
-    const usernameDisplay = document.getElementById('username');
     const emojiContainer = document.getElementById('emoji-container');
+    const fileInput = document.getElementById('file-input');
+    const downloadBtn = document.getElementById('download-chat');
 
-    const username = 'User'; // You can dynamically set the username if needed
-    usernameDisplay.textContent = username; // Display username in header
+    const username = 'User'; // Set username
+    document.getElementById('username').textContent = username;
 
-    // Store emojis from GitHub API
-    let emojiMap = {};
+    // GitHub Emoji Map (including more emojis from GitHub's emoji set)
+    const emojiMap = {
+        ':smile:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f604.png',
+        ':heart:': 'https://github.githubassets.com/images/icons/emoji/unicode/2764.png',
+        ':thumbsup:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f44d.png',
+        ':laughing:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f606.png',
+        ':wink:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f609.png',
+        ':cry:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f622.png',
+        ':thumbsdown:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f44e.png',
+        ':clap:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f44f.png',
+        ':star:': 'https://github.githubassets.com/images/icons/emoji/unicode/2b50.png',
+        ':fire:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f525.png',
+        ':sunglasses:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f60e.png',
+        ':tada:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f389.png',
+        ':muscle:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f4aa.png',
+        ':hugs:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f917.png',
+        ':pizza:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f355.png',
+        ':coffee:': 'https://github.githubassets.com/images/icons/emoji/unicode/2615.png',
+        ':sunny:': 'https://github.githubassets.com/images/icons/emoji/unicode/2600.png',
+        ':earth_africa:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f30d.png',
+    };
 
     // Send message function
     function sendMessage() {
         const message = messageInput.value.trim();
-        if (message === "") return; // Don't send empty messages
+        if (message === '') return; // Don't send empty messages
 
         // Add user message to chat
         addMessageToChat(message, 'user');
 
-        // Clear the input
+        // Clear input field
         messageInput.value = '';
 
         // Simulate bot response after a short delay
@@ -41,132 +60,138 @@ document.addEventListener('DOMContentLoaded', function () {
         messageElement.classList.add('message');
         messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
 
-        // Optional: Add avatar for user/bot
-        const avatar = document.createElement('img');
-        avatar.classList.add('avatar');
-        avatar.src = sender === 'user'
-            ? 'https://randomuser.me/api/portraits/men/1.jpg'
-            : 'https://randomuser.me/api/portraits/men/2.jpg';
-        messageElement.appendChild(avatar);
+        // Create message content element
+        const messageContent = document.createElement('div');
+        messageContent.classList.add('message-content');
+        messageContent.innerHTML = convertTextToEmojis(message); // Convert emojis before adding content
+        messageElement.appendChild(messageContent);
 
-        // Replace emoji codes in the message with their image URLs
-        const messageText = document.createElement('p');
-        messageText.innerHTML = replaceEmojiWithImages(message); // Replace emojis
-        messageElement.appendChild(messageText);
-
-        // Add timestamp
+        // Timestamp
         const timestamp = document.createElement('span');
-        timestamp.classList.add('message-time');
+        timestamp.classList.add('time');
         const date = new Date();
-        timestamp.textContent = `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+        timestamp.textContent = `${date.getHours()}:${date.getMinutes()}`;
         messageElement.appendChild(timestamp);
+
+        // Add actions for user messages (edit and delete buttons)
+        if (sender === 'user') {
+            const messageActions = document.createElement('div');
+            messageActions.classList.add('message-actions');
+
+            // Edit button
+            const editBtn = document.createElement('button');
+            editBtn.classList.add('edit-btn');
+            editBtn.textContent = 'Edit';
+            messageActions.appendChild(editBtn);
+
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.textContent = 'Delete';
+            messageActions.appendChild(deleteBtn);
+
+            messageElement.appendChild(messageActions);
+        }
 
         // Append message to chat window
         chatWindow.appendChild(messageElement);
 
-        // Scroll to bottom
+        // Scroll to the bottom
         chatWindow.scrollTop = chatWindow.scrollHeight;
-
-        // Store chat history in localStorage
-        saveChatHistory();
     }
 
-    // Replace emoji text with corresponding image URLs
-    function replaceEmojiWithImages(text) {
-        return text.replace(/:\w+:/g, match => {
-            const emojiUrl = emojiMap[match.slice(1, -1)];
-            return emojiUrl ? `<img src="${emojiUrl}" alt="${match}" class="emoji-inline" />` : match;
+    // Convert text message to display emojis (if applicable)
+    function convertTextToEmojis(text) {
+        return text.replace(/(:\w+:)/g, (match) => {
+            return emojiMap[match] ? `<img src="${emojiMap[match]}" alt="${match}" class="emoji" />` : match;
         });
     }
 
-    // Generate bot response based on user input
-    function generateBotResponse(message) {
-        if (message.toLowerCase().includes('hello')) {
-            return 'Hi there! How can I assist you today? 😊';
-        } else if (message.toLowerCase().includes('help')) {
-            return 'I am here to help! Ask me anything.';
-        } else if (message.toLowerCase().includes('bye')) {
-            return 'Goodbye! Have a nice day!';
-        }
-        return "I'm here to help!";
+    // Simulate bot response based on user message
+    function generateBotResponse(userMessage) {
+        return `You said: ${userMessage}`;
     }
 
-    // Event listener for "Enter" key press to send message
-    messageInput.addEventListener('keydown', function (event) {
+    // Night mode toggle
+    nightModeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+    });
+
+    // Send message on button click
+    sendBtn.addEventListener('click', sendMessage);
+
+    // Send message on Enter key press
+    messageInput.addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
-            event.preventDefault(); // Prevent newline in input
             sendMessage();
         }
     });
 
-    // Event listener for "Send" button click
-    sendBtn.addEventListener('click', sendMessage);
-
-    // Dark Mode toggle functionality
-    nightModeToggle.addEventListener('click', function () {
-        document.body.classList.toggle('dark-mode');
-    });
-
-    // Floating Action Button (FAB) functionality
-    fab.addEventListener('click', function () {
-        messageInput.focus(); // Focus the input field for quick message typing
-    });
-
-    // Emoji picker toggle
-    emojiButton.addEventListener('click', function () {
+    // Show emoji container
+    emojiButton.addEventListener('click', () => {
         emojiContainer.style.display = emojiContainer.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Add emoji to input
-    emojiContainer.addEventListener('click', function (event) {
-        if (event.target.tagName === 'IMG') { // Ensure we are clicking on an image
-            const emojiAlt = event.target.alt; // Use the alt text as the emoji
-            messageInput.value += emojiAlt; // Append emoji to input field
-            emojiContainer.style.display = 'none'; // Hide emoji container after selection
+    // Fetch emojis and display them
+    function fetchEmojis() {
+        // Manually display a few emojis for demonstration purposes
+        const emojiNames = Object.keys(emojiMap);
+        emojiNames.forEach(name => {
+            const emojiElement = document.createElement('img');
+            emojiElement.src = emojiMap[name];
+            emojiElement.alt = `:${name}:`; // Use emoji name as alt text
+            emojiElement.classList.add('emoji');
+            emojiElement.style.width = '32px'; // Set emoji size
+            emojiElement.style.cursor = 'pointer'; // Cursor pointer
+            emojiElement.addEventListener('click', () => {
+                messageInput.value += `:${name}:`; // Append emoji as text to input field
+                emojiContainer.style.display = 'none'; // Hide emoji container after selection
+            });
+            emojiContainer.appendChild(emojiElement);
+        });
+    }
+
+    // Handle file uploads
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (file) {
+            const message = `📎 <a href="${URL.createObjectURL(file)}" target="_blank">${file.name}</a>`;
+            addMessageToChat(message, 'user');
         }
     });
 
-    // Fetch emojis from GitHub API and populate the emoji container
-    async function fetchEmojis() {
-        try {
-            const response = await fetch('https://api.github.com/emojis');
-            const emojis = await response.json();
+    // Typing indicator
+    messageInput.addEventListener('input', () => {
+        typingIndicator.textContent = `${username} is typing...`;
+        typingIndicator.style.display = 'block';
+        clearTimeout(window.typingTimeout);
+        window.typingTimeout = setTimeout(() => {
+            typingIndicator.style.display = 'none';
+        }, 1000);
+    });
 
-            // Store emojis in the emojiMap
-            emojiMap = emojis;
-
-            // Populate the emoji container
-            Object.entries(emojis).forEach(([name, emojiUrl]) => {
-                const emojiElement = document.createElement('img');
-                emojiElement.src = emojiUrl;
-                emojiElement.alt = `:${name}:`; // Use GitHub emoji name as the alt text
-                emojiElement.classList.add('emoji');
-                emojiElement.style.width = '32px'; // Set emoji size
-                emojiElement.style.cursor = 'pointer'; // Cursor pointer
-                emojiContainer.appendChild(emojiElement);
-            });
-        } catch (error) {
-            console.error('Error fetching emojis:', error);
+    // Edit and delete message actions
+    chatWindow.addEventListener('click', (event) => {
+        if (event.target.classList.contains('edit-btn')) {
+            const messageContent = event.target.closest('.message').querySelector('.message-content');
+            const newText = prompt('Edit your message:', messageContent.textContent);
+            if (newText) messageContent.innerHTML = convertTextToEmojis(newText);
+        } else if (event.target.classList.contains('delete-btn')) {
+            const messageElement = event.target.closest('.message');
+            messageElement.remove();
         }
-    }
+    });
 
-    // Save chat history in localStorage
-    function saveChatHistory() {
-        const messages = chatWindow.innerHTML;
-        localStorage.setItem('chatHistory', messages);
-    }
+    // Download chat history
+    downloadBtn.addEventListener('click', () => {
+        const messages = Array.from(chatWindow.querySelectorAll('.message-content')).map((msg) => msg.textContent);
+        const blob = new Blob([messages.join('\n')], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'chat-history.txt';
+        link.click();
+    });
 
-    // Load chat history from localStorage
-    function loadChatHistory() {
-        const savedMessages = localStorage.getItem('chatHistory');
-        if (savedMessages) {
-            chatWindow.innerHTML = savedMessages;
-        }
-    }
-
-    // Load chat history when page loads
-    loadChatHistory();
-
-    // Fetch and initialize emojis
+    // Fetch emojis on load
     fetchEmojis();
 });

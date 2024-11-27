@@ -14,10 +14,24 @@
             <h1>Messenger</h1>
             <p id="username-display">You are chatting as: <span id="username"></span></p>
             <button id="night-mode-toggle" class="night-mode-toggle">🌙</button>
+            <div class="message">
+                <p class="message-content">Hello!</p>
+                <div class="message-actions">
+                </div>
+              </div>
+
+              <input type="file" id="file-input" style="display: none;" />
+            <label for="file-input" class="file-upload-btn">📎</label>
+             <div id="typing-indicator" class="typing-indicator">Bot is typing...</div>
+             <button class="reaction-btn">😊</button>
+             <button id="download-chat" class="download-btn">💾 Save Chat</button>
+
         </header>
 
         <!-- Chat Window -->
         <div id="chat-window" class="chat-window"></div>
+    
+          
 
         <!-- Typing Indicator -->
         <div id="typing-indicator" class="typing-indicator">Bot is typing...</div>
