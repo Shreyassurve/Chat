@@ -124,7 +124,7 @@ body.dark-mode .chat-window {
 .chat-window .bot-message {
     justify-content: flex-start;
     text-align: left;
-    background: linear-gradient(135deg, #e0e0e0, #d1d1d1);
+    background: linear-gradient(135deg, #e0e0e0, #d17a7a);
     color: #333;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }

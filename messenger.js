@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const username = 'User'; // Set username
     document.getElementById('username').textContent = username;
 
-    // GitHub Emoji Map (including more emojis from GitHub's emoji set)
+    // GitHub Emoji Map
     const emojiMap = {
         ':smile:': 'https://github.githubassets.com/images/icons/emoji/unicode/1f604.png',
         ':heart:': 'https://github.githubassets.com/images/icons/emoji/unicode/2764.png',
@@ -107,9 +107,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Simulate bot response based on user message
+    // Simulate bot response based on user message with more varied replies
     function generateBotResponse(userMessage) {
-        return `You said: ${userMessage}`;
+        const responses = [
+            `You said: ${userMessage}`,
+            `How can I assist you with "${userMessage}"?`,
+            `That's interesting! Could you elaborate on "${userMessage}"?`,
+            `Tell me more about "${userMessage}". I'm curious!`,
+            `I see you're talking about "${userMessage}". What else can I help you with?`,
+            `I’m not sure about "${userMessage}". Do you want to know something else?`,
+            `Sounds fun! What else do you want to talk about?`
+        ];
+
+        // Return a random response from the list
+        return responses[Math.floor(Math.random() * responses.length)];
     }
 
     // Night mode toggle
@@ -175,23 +186,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (event.target.classList.contains('edit-btn')) {
             const messageContent = event.target.closest('.message').querySelector('.message-content');
             const newText = prompt('Edit your message:', messageContent.textContent);
-            if (newText) messageContent.innerHTML = convertTextToEmojis(newText);
-        } else if (event.target.classList.contains('delete-btn')) {
-            const messageElement = event.target.closest('.message');
-            messageElement.remove();
+            if (newText) {
+                messageContent.innerHTML = convertTextToEmojis(newText);
+            }
+        }
+
+        if (event.target.classList.contains('delete-btn')) {
+            event.target.closest('.message').remove();
         }
     });
 
-    // Download chat history
-    downloadBtn.addEventListener('click', () => {
-        const messages = Array.from(chatWindow.querySelectorAll('.message-content')).map((msg) => msg.textContent);
-        const blob = new Blob([messages.join('\n')], { type: 'text/plain' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'chat-history.txt';
-        link.click();
-    });
-
-    // Fetch emojis on load
+    // Initialize emoji container and fetch emojis
     fetchEmojis();
 });
